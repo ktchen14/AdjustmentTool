@@ -1,15 +1,17 @@
+#if DEBUG
 using System.Diagnostics;
 using UnityEngine;
 
-namespace EditorAdjustment {
-    [KSPAddon(KSPAddon.Startup.EveryScene, false)]
-    public class Injector : MonoBehaviour {
-        public bool active;
+namespace AdjustmentTool {
+  [KSPAddon(KSPAddon.Startup.EveryScene, false)]
+  public class Injector : MonoBehaviour {
+    public bool active;
 
-        private void Update() {
-            if (!active)
-                return;
-            Debugger.Break();
-        }
+    private void Update() {
+      if (!active)
+        return;
+      Debugger.Break();
     }
+  }
 }
+#endif
