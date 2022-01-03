@@ -4,7 +4,8 @@ using System.Linq;
 using UnityEngine;
 
 namespace AdjustmentTool.UI {
-  public delegate void OnMove(Vector3 move);
+  public delegate void OnMove(Vector3 position);
+  public delegate void OnMoveStop();
 
   public class Axes : MonoBehaviour {
     public readonly HandleHold HandleHold = new HandleHold();
@@ -20,6 +21,7 @@ namespace AdjustmentTool.UI {
     public bool Held { get; private set; }
 
     public OnMove OnMove = delegate { };
+    public OnMoveStop OnMoveStop = delegate { };
 
     /// Whether a handle drag should "snap" to a marker
     [NonSerialized] public bool Quantize;
@@ -82,12 +84,17 @@ namespace AdjustmentTool.UI {
       EachAxis(axis => axis.HandleMove.RemoveListener(OnHandleMove));
     }
 
-    private void OnHandleHold(Handle _, bool held) => Held = held;
+    private void OnHandleHold(Handle _, bool held) {
+      Held = held;
+      if (Held)
+        return;
+      OnMoveStop();
+    }
 
     private void OnHandleMove(Handle handle, float offset) {
-      var unitVector = handle.transform.right;
-      transform.Translate(offset * unitVector, Space.World);
-      OnMove(offset * unitVector);
+      var transform = this.transform;
+      transform.Translate(offset * handle.transform.right, Space.World);
+      OnMove(transform.position);
     }
 
     private void EachAxis(Action<Axis> action)

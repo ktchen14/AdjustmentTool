@@ -10,13 +10,14 @@ namespace AdjustmentTool {
 
     public bool Held => axes.Held;
 
-    public static AdjustmentTool Attach(Part parent, Transform host, Quaternion rotation, OnMove onMove) {
+    public static AdjustmentTool Attach(Part parent, Transform host, Quaternion rotation, OnMove onMove, OnMoveStop onMoveStop) {
       var tool = Instantiate(Object).GetComponent<AdjustmentTool>();
       tool.transform.position = host.position;
       tool.transform.rotation = host.rotation * Quaternion.Inverse(rotation);
 
       tool.Encase(parent);
       tool.axes.OnMove = onMove;
+      tool.axes.OnMoveStop = onMoveStop;
 
       return tool;
     }

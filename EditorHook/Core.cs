@@ -1,7 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Reflection;
+using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 namespace AdjustmentTool {
   [SuppressMessage("ReSharper", "InconsistentNaming")]
@@ -11,34 +15,14 @@ namespace AdjustmentTool {
     private AdjustmentTool adjustmentTool;
 
     [RemoteMember("fsm")] private KerbalFSM efsm;
-    [RemoteMember] private KFSMState st_idle;
-    [RemoteMember] private KFSMState st_place;
-    [RemoteMember] private KFSMState st_offset_select;
-    [RemoteMember] private KFSMState st_offset_tweak;
-    [RemoteMember] private KFSMState st_rotate_select;
-    [RemoteMember] private KFSMState st_rotate_tweak;
-    [RemoteMember] private KFSMState st_root_unselected;
-    [RemoteMember] private KFSMState st_root_select;
-    [RemoteMember] private KFSMEvent on_podDeleted;
-    [RemoteMember] private KFSMEvent on_partCreated;
-    [RemoteMember] private KFSMEvent on_partPicked;
-    [RemoteMember] private KFSMEvent on_partDeleted;
-    [RemoteMember] private KFSMEvent on_partOverInventoryPAW;
-    [RemoteMember] private KFSMEvent on_goToModeOffset;
-    [RemoteMember] private KFSMEvent on_goToModeRotate;
-    [RemoteMember] private KFSMEvent on_goToModeRoot;
-    [RemoteMember] private KFSMEvent on_goToModePlace;
-    [RemoteMember] private KFSMEvent on_undoRedo;
-    [RemoteMember] private KFSMEvent on_newShip;
-    [RemoteMember] private KFSMEvent on_shipLoaded;
-
-    [RemoteMember] private KFSMCallback snapInputUpdate;
-    [RemoteMember] private KFSMCallback deleteInputUpdate;
-    [RemoteMember] private KFSMCallback partSearchUpdate;
-
-    private delegate Part PickPart(
-      int layerMask, bool pickRoot, bool pickRootIfFrozen);
-    [RemoteMember] private PickPart pickPart;
+    private KFSMState st_offset_select;
+    private KFSMState st_offset_tweak;
+    private KFSMState st_rotate_select;
+    private KFSMState st_rotate_tweak;
+    private KFSMEvent on_goToModeOffset;
+    private KFSMEvent on_goToModeRotate;
+    private KFSMEvent on_offsetSelect;
+    private KFSMEvent on_offsetDeselect;
 
     private Action<Part> selectedPartSetter;
     private Part SelectedPart {
@@ -51,84 +35,122 @@ namespace AdjustmentTool {
     private KFSMEvent on_goToModeAdjust;
     private KFSMEvent on_adjustSelect;
     private KFSMEvent on_adjustDeselect;
-
-    private AudioSource audioSource;
+    private KFSMEvent on_adjustRevert;
 
     private void Awake() => editor = EditorLogic.fetch;
 
-    private void Start() => Initialize();
+    private void Start() => Initialize(HookEditor);
 
     /// Hook the AdjustmentTool code into the EditorLogic instance
     private void HookEditor(EditorLogic editor) {
       RemoteMemberAttribute.Load(this, editor);
 
-      const BindingFlags search = RemoteMemberAttribute.Search;
-      var type = typeof(EditorLogic);
+      const BindingFlags Search = RemoteMemberAttribute.Search;
+
       (FieldInfo f, PropertyInfo p) info;
-      if ((info.p = type.GetProperty("selectedPart", search)) != null) {
+      var Editor = typeof(EditorLogic);
+      if ((info.p = Editor.GetProperty("selectedPart", Search)) != null) {
         if (!typeof(Part).IsAssignableFrom(info.p.PropertyType))
           throw new Exception("Can't hook into EditorLogic.selectedPart");
         if (!info.p.CanRead || !info.p.CanWrite)
           throw new Exception("Can't hook into EditorLogic.selectedPart");
         selectedPartSetter = part => info.p.SetValue(editor, part);
-      } else if ((info.f = type.GetField("selectedPart", search)) != null) {
+      } else if ((info.f = Editor.GetField("selectedPart", Search)) != null) {
         if (!typeof(Part).IsAssignableFrom(info.f.FieldType))
           throw new Exception("Can't hook into EditorLogic.selectedPart");
         selectedPartSetter = part => info.f.SetValue(editor, part);
       } else throw new Exception("Can't hook into EditorLogic.selectedPart");
 
+      (FieldInfo f, PropertyInfo p) nodeInfo;
+      List<KFSMState> nodeList;
+      if ((nodeInfo.p = efsm.GetType().GetProperty("States", Search)) != null)
+        nodeList = (List<KFSMState>) nodeInfo.p.GetValue(efsm);
+      else if ((nodeInfo.f = efsm.GetType().GetField("States", Search)) != null)
+        nodeList = (List<KFSMState>) nodeInfo.f.GetValue(efsm);
+      else throw new Exception("Can't hook into KerbalFSM.States");
+
+      var nodeLookup = nodeList.ToDictionary(node => node.name);
+      st_offset_select = nodeLookup["st_offset_select"];
+      st_offset_tweak = nodeLookup["st_offset_tweak"];
+      st_rotate_select = nodeLookup["st_rotate_select"];
+      st_rotate_tweak = nodeLookup["st_rotate_tweak"];
+
+      var edgeLookup = new Dictionary<string, KFSMEvent>();
+      foreach (var edge in nodeList.SelectMany(node => node.StateEvents))
+        edgeLookup[edge.name] = edge;
+      on_goToModeOffset = edgeLookup["on_goToModeOffset"];
+      on_goToModeRotate = edgeLookup["on_goToModeRotate"];
+      on_offsetSelect = edgeLookup["on_offsetSelect"];
+      on_offsetDeselect = edgeLookup["on_offsetDeselect"];
+
       st_adjust_select = new KFSMState("st_adjust_select");
-      InitializeAdjustSelect(st_adjust_select);
-      st_adjust_select.OnUpdate += editor.UndoRedoInputUpdate;
-      st_adjust_select.OnUpdate += snapInputUpdate;
-      st_adjust_select.OnUpdate += partSearchUpdate;
+      InitializeAdjustSelect();
       efsm.AddState(st_adjust_select);
 
       st_adjust_active = new KFSMState("st_adjust_active");
-      InitializeAdjustActive(st_adjust_active);
-      st_adjust_active.OnUpdate += editor.UndoRedoInputUpdate;
-      st_adjust_active.OnUpdate += snapInputUpdate;
-      st_adjust_active.OnUpdate += deleteInputUpdate;
-      st_adjust_active.OnUpdate += partSearchUpdate;
+      InitializeAdjustActive();
       efsm.AddState(st_adjust_active);
 
+      // Add on_goToModeAdjust to each node with either on_goToModeOffset or
+      // on_goToModeRotate
       on_goToModeAdjust = new KFSMEvent("on_goToModeAdjust");
-      InitializeOn_goToModeAdjust(on_goToModeAdjust);
-      efsm.AddEvent(on_goToModeAdjust, st_idle,
-        st_offset_select, st_offset_tweak,
-        st_rotate_select, st_rotate_tweak,
-        st_root_unselected, st_root_select);
+      InitializeOn_goToModeAdjust();
+      var goToEdgeList = new [] { on_goToModeOffset, on_goToModeRotate };
+      efsm.AddEvent(on_goToModeAdjust, nodeLookup.Values.Where(
+        node => node.StateEvents.Any(edge => goToEdgeList.Contains(edge))
+      ).ToArray());
 
       on_adjustSelect = new KFSMEvent("on_adjustSelect");
-      InitializeOn_AdjustSelect(on_adjustSelect);
+      InitializeOn_AdjustSelect();
       efsm.AddEvent(on_adjustSelect, st_adjust_select);
 
       on_adjustDeselect = new KFSMEvent("on_adjustDeselect");
-      InitializeOn_AdjustDeselect(on_adjustDeselect);
+      InitializeOn_AdjustDeselect();
       efsm.AddEvent(on_adjustDeselect, st_adjust_active);
 
-      efsm.AddEvent(on_podDeleted, st_adjust_select, st_adjust_active);
-      efsm.AddEvent(on_partCreated, st_adjust_select, st_adjust_active);
-      efsm.AddEvent(on_partDeleted, st_adjust_active);
-      efsm.AddEvent(
-        on_partOverInventoryPAW, st_adjust_select, st_adjust_active);
-      efsm.AddEvent(on_goToModeOffset, st_adjust_select, st_adjust_active);
-      efsm.AddEvent(on_goToModeRotate, st_adjust_select, st_adjust_active);
-      efsm.AddEvent(on_goToModeRoot, st_adjust_select, st_adjust_active);
-      efsm.AddEvent(on_goToModePlace, st_adjust_select, st_adjust_active);
-      efsm.AddEvent(on_undoRedo, st_adjust_active);
-      efsm.AddEvent(on_newShip, st_adjust_select, st_adjust_active);
-      efsm.AddEvent(on_shipLoaded, st_adjust_select, st_adjust_active);
+      on_adjustRevert = new KFSMEvent("on_adjustRevert") {
+        GoToStateOnEvent = st_adjust_active,
+        updateMode = KFSMUpdateMode.MANUAL_TRIGGER
+      };
+      efsm.AddEvent(on_adjustRevert, st_adjust_active);
+
+      // Add each edge in both st_offset_select and st_rotate_select as well as
+      // both on_goToModeOffset and on_goToModeRotate to st_adjust_select.
+      st_offset_select.StateEvents.Intersect(
+        st_rotate_select.StateEvents
+      ).ToList().ForEach(edge => efsm.AddEvent(edge, st_adjust_select));
+      efsm.AddEvent(on_goToModeOffset, st_adjust_select);
+      efsm.AddEvent(on_goToModeRotate, st_adjust_select);
+
+      // Add each edge in both st_offset_tweak and st_rotate_tweak as well as
+      // both on_goToModeOffset and on_goToModeRotate to st_adjust_active.
+      st_offset_tweak.StateEvents.Intersect(
+        st_rotate_tweak.StateEvents
+      ).ToList().ForEach(edge => efsm.AddEvent(edge, st_adjust_active));
+      efsm.AddEvent(on_goToModeOffset, st_adjust_active);
+      efsm.AddEvent(on_goToModeRotate, st_adjust_active);
+
+      // Handle st_adjust_active in on_undoRedo so that an undo or redo doesn't
+      // result in a NullReferenceException
+      var on_undoRedo = edgeLookup["on_undoRedo"];
+      on_undoRedo.OnEvent += () => {
+        if (efsm.CurrentState == st_adjust_active)
+          on_undoRedo.GoToStateOnEvent = st_adjust_select;
+      };
     }
 
     // Whether the part is adjustable (surface attached)
     private static bool isPartAdjustable(Part part)
       => part.srfAttachNode != null && part.srfAttachNode.attachedPart != null;
 
-    // Call EditorLogic.pickPart. The layer mask is inscrutable so we'll just
-    // duplicate what's used by the Offset tool. Also don't pick the root part
-    // on Left Shift.
-    private Part choosePart()
-      => pickPart(EditorLogic.LayerMask | (1 << 2) | (1 << 21), false, false);
+    private static bool IsTextLocked(ControlTypes type = ControlTypes.None) {
+      if (InputLockManager.IsLocked(type))
+        return true;
+
+      var item = EventSystem.current.currentSelectedGameObject;
+      if (item == null)
+        return false;
+      return item.GetComponent<TMP_InputField>() != null;
+    }
   }
 }

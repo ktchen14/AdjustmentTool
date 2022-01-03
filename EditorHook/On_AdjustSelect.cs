@@ -1,35 +1,23 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 namespace AdjustmentTool {
   public partial class EditorHook {
-    private void InitializeOn_AdjustSelect(KFSMEvent on) {
-      on.updateMode = KFSMUpdateMode.UPDATE;
-      on.OnCheckCondition = isAdjustSelect;
-      on.GoToStateOnEvent = st_adjust_active;
+    private void InitializeOn_AdjustSelect() {
+      on_adjustSelect.updateMode = KFSMUpdateMode.UPDATE;
+      on_adjustSelect.OnCheckCondition = isAdjustSelect;
+      on_adjustSelect.GoToStateOnEvent = st_adjust_active;
     }
 
-    private bool isAdjustSelect(KFSMState _) {
-      if (!Input.GetMouseButtonUp(0))
-        return false;
-      if (EventSystem.current.IsPointerOverGameObject())
+    private bool isAdjustSelect(KFSMState node) {
+      if (Input.GetKey(KeyCode.LeftShift))
         return false;
 
-      if ((SelectedPart = choosePart()) == null)
-        return false;
+      var result = on_offsetSelect.OnCheckCondition(node);
 
-      if (!editor.ship.Contains(SelectedPart)) {
-        on_adjustSelect.GoToStateOnEvent = st_place;
-        on_partPicked.OnEvent();
-        return false;
-      }
+      if (!result || isPartAdjustable(SelectedPart))
+        return result;
 
-      if (!isPartAdjustable(SelectedPart)) {
-        SelectedPart = null;
-        return false;
-      }
-
-      return SelectedPart;
+      return SelectedPart = null;
     }
   }
 }
