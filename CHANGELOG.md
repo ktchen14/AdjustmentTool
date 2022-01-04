@@ -4,6 +4,9 @@ Changelog
 [Unreleased]
 ------------
 
+[0.0.2] - January 4, 2022
+-------------------------
+
 ### Changed
 - Removed access to most prohibited members of KSP classes
 - Reused most of the offset tool's FSM states and events
@@ -17,5 +20,6 @@ Changelog
 
 Initial release
 
-[Unreleased]: https://github.com/ktchen14/AdjustmentTool/compare/v0.0.1..master
+[Unreleased]: https://github.com/ktchen14/AdjustmentTool/compare/v0.0.2..master
+[0.0.2]: https://github.com/ktchen14/AdjustmentTool/tree/v0.0.2
 [0.0.1]: https://github.com/ktchen14/AdjustmentTool/tree/v0.0.1
