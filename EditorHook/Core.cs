@@ -130,6 +130,16 @@ namespace AdjustmentTool {
       efsm.AddEvent(on_goToModeOffset, st_adjust_active);
       efsm.AddEvent(on_goToModeRotate, st_adjust_active);
 
+      // Ensure that the SelectedPart's onEditorEndTweak() method isn't called
+      // on a transition to st_adjust_active
+      var offsetExit = st_offset_tweak.OnLeave;
+      st_offset_tweak.OnLeave = to =>
+        offsetExit(to != st_adjust_active ? to : st_offset_tweak);
+
+      var rotateExit = st_rotate_tweak.OnLeave;
+      st_rotate_tweak.OnLeave = to =>
+        rotateExit(to != st_adjust_active ? to : st_offset_tweak);
+
       // Handle st_adjust_active in on_undoRedo so that an undo or redo doesn't
       // result in a NullReferenceException
       var on_undoRedo = edgeLookup["on_undoRedo"];
