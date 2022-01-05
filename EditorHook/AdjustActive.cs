@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using AdjustmentTool.UI;
 using EditorGizmos;
 using UnityEngine;
@@ -33,18 +35,29 @@ namespace AdjustmentTool {
       symUpdateParent = SelectedPart.parent;
       symUpdateAttachNode = SelectedPart.FindAttachNodeByPart(symUpdateParent);
 
-      adjustmentTool = AdjustmentTool.Attach(
-        SelectedPart.GetReferenceParent(),
+      AdjustmentTool = AdjustmentTool.Attach(
         SelectedPart.GetReferenceTransform(),
         SelectedPart.initRotation,
         onMove,
         onMoveStop);
+
+      partCollection.enabled = true;
+      partCollection.Change.AddListener(OnPartCollectionChange);
+      partCollection.IsSelectable = IsPartCollectionSelectable;
+
+      OnPartCollectionChange(partCollection);
+
       GameEvents.onEditorPartEvent.Add(OnPartOffset);
     }
 
     private void onAdjustExit(KFSMState to) {
+      AdjustmentTool.Detach();
+
+      partCollection.enabled = false;
+      partCollection.Change.RemoveListener(OnPartCollectionChange);
+      partCollection.IsSelectable = null;
+
       GameEvents.onEditorPartEvent.Remove(OnPartOffset);
-      adjustmentTool.Detach();
     }
 
     private void divisionUpdate() {
@@ -86,6 +99,13 @@ namespace AdjustmentTool {
       GameEvents.onEditorPartEvent.Fire(ConstructionEventType.PartOffset,
         SelectedPart);
       GameEvents.onEditorPartEvent.Add(OnPartOffset);
+    }
+
+    private bool IsPartCollectionSelectable() => !AdjustmentTool.Held;
+
+    private void OnPartCollectionChange(ICollection<Part> collection) {
+      var list = collection.DefaultIfEmpty(SelectedPart.GetReferenceParent());
+      AdjustmentTool.Encase(list.ToArray());
     }
 
     // Revert the adjustment tool if the part is offset from an external source

@@ -50,6 +50,7 @@
         <Compile Include="EditorHook\On_GoToModeAdjust.cs" />
         <Compile Include="Injector.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
+        <Compile Include="PartCollection.cs" />
         <Compile Include="RemoteMember.cs" />
         <Compile Include="ToolSelector.cs" />
     </ItemGroup>

@@ -23,6 +23,9 @@ namespace AdjustmentTool {
         AdjustmentTool.Load(bundle);
         selector = ToolSelector.Initialize(bundle, GoToModeAdjust);
         hookEditor(editor);
+
+        partCollection = gameObject.AddComponent<PartCollection>();
+        partCollection.enabled = false;
       } catch (Exception e) {
         if (selector != null)
           Destroy(selector);

@@ -11,8 +11,10 @@ namespace AdjustmentTool {
   [SuppressMessage("ReSharper", "InconsistentNaming")]
   [KSPAddon(KSPAddon.Startup.EditorVAB, false)]
   public partial class EditorHook : MonoBehaviour {
+    public AdjustmentTool AdjustmentTool { get; private set; }
+
     private EditorLogic editor;
-    private AdjustmentTool adjustmentTool;
+    private PartCollection partCollection;
 
     [RemoteMember("fsm")] private KerbalFSM efsm;
     private KFSMState st_offset_select;

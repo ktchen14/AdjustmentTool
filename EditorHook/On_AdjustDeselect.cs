@@ -11,7 +11,7 @@ namespace AdjustmentTool {
     private bool isAdjustDeselect(KFSMState node) {
       if (Input.GetKey(KeyCode.LeftShift))
         return false;
-      if (adjustmentTool.Held)
+      if (AdjustmentTool.Held)
         return false;
       return on_offsetDeselect.OnCheckCondition(node);
     }
