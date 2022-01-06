@@ -53,9 +53,9 @@ namespace AdjustmentTool.UI {
         // the orientation of the transformed mesh (as seen by the axes). To
         // summarize, this is the rotation of the mesh from the perspective of
         // the axes.
-        var y = transform.InverseTransformDirection(meshTransform.up);
-        var z = transform.InverseTransformDirection(meshTransform.forward);
-        var rotation = Quaternion.LookRotation(z, y);
+        // var y = transform.InverseTransformDirection(meshTransform.up);
+        // var z = transform.InverseTransformDirection(meshTransform.forward);
+        // var rotation = Quaternion.LookRotation(z, y);
 
         // The translation that, when applied to the untranslated (but rotated)
         // mesh, will make it have the same position (as seen by an untranslated
@@ -63,9 +63,11 @@ namespace AdjustmentTool.UI {
         // axes). Note that this translation is in the coordinate system of the
         // mesh as rotated by *rotation*. To summarize, this is the position of
         // the mesh from the (rotated) perspective of the axes.
-        var position = transform.InverseTransformPoint(meshTransform.position);
+        // var position = transform.InverseTransformPoint(meshTransform.position);
 
-        var matrix = Matrix4x4.TRS(position, rotation, Vector3.one);
+        // var matrix = Matrix4x4.TRS(position, rotation, Vector3.one);
+
+        var matrix = transform.worldToLocalMatrix * meshTransform.localToWorldMatrix;
         return GeometryUtility.CalculateBounds(mesh.vertices, matrix);
       }).Aggregate((i, j) => { i.Encapsulate(j); return i; });
 
