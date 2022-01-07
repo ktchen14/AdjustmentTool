@@ -4,6 +4,16 @@ Changelog
 [Unreleased]
 ------------
 
+[0.0.3] - January 6, 2022
+-------------------------
+
+### Added
+- The ability to select an arbitrary set of parts (with Left Shift + Click) to
+  use as the reference parts for the tool
+
+### Fixed
+- Calculation of the oriented bounding box when a part is scaled
+
 [0.0.2] - January 4, 2022
 -------------------------
 
@@ -20,6 +30,7 @@ Changelog
 
 Initial release
 
-[Unreleased]: https://github.com/ktchen14/AdjustmentTool/compare/v0.0.2..master
+[Unreleased]: https://github.com/ktchen14/AdjustmentTool/compare/v0.0.3..master
+[0.0.3]: https://github.com/ktchen14/AdjustmentTool/tree/v0.0.3
 [0.0.2]: https://github.com/ktchen14/AdjustmentTool/tree/v0.0.2
 [0.0.1]: https://github.com/ktchen14/AdjustmentTool/tree/v0.0.1

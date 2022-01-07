@@ -18,6 +18,12 @@ default) to change the number of markers on each axis.
 When angle snap is enabled, the handle will "snap" to each marker so that you
 can precisely position parts at marked intervals along each axis.
 
+When the tool is active, it's also possible to designate arbitrary parts as the
+reference parts for the tool. Select (and deselect) reference parts with Left
+Shift + Click. Reference parts are highlighted in blue. To clear the reference
+part list, Left Shift + Click on an area with no part. When no reference parts
+are selected, the parent part is used.
+
 Limitations
 -----------
 
