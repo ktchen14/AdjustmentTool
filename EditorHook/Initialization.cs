@@ -20,7 +20,8 @@ namespace AdjustmentTool {
             throw new Exception($"Can't load bundle at {bundleLocation}");
         }
 
-        AdjustmentTool.Load(bundle);
+        if (AdjustmentTool.Template == null)
+          AdjustmentTool.Load(bundle);
         selector = ToolSelector.Initialize(bundle, GoToModeAdjust);
         hookEditor(editor);
 

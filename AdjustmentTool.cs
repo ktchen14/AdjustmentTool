@@ -5,15 +5,13 @@ using UnityEngine;
 
 namespace AdjustmentTool {
   public class AdjustmentTool : MonoBehaviour {
-    private static GameObject Object { get; set; }
+    public static AdjustmentTool Template { get; private set; }
     private Axes axes;
 
     public bool Held => axes.Held;
 
     public static AdjustmentTool Attach(Transform host, Quaternion rotation, OnMove onMove, OnMoveStop onMoveStop) {
-      var tool = Instantiate(Object).GetComponent<AdjustmentTool>();
-      tool.transform.position = host.position;
-      tool.transform.rotation = host.rotation * Quaternion.Inverse(rotation);
+      var tool = Instantiate(Template, host.position, host.rotation * Quaternion.Inverse(rotation));
 
       tool.axes.OnMove = onMove;
       tool.axes.OnMoveStop = onMoveStop;
@@ -40,33 +38,23 @@ namespace AdjustmentTool {
     private void onEditorSnapModeChange(bool mode) => axes.Quantize = mode;
 
     public static void Load(AssetBundle bundle) {
-      if (Object && Object.GetComponent<AdjustmentTool>() != null)
-        return;
-
-      var offsetTool = AssetBase.GetPrefab("OffsetGizmo");
-      if (offsetTool == null)
+      if (!(AssetBase.GetPrefab("OffsetGizmo") is GameObject offsetTool))
         throw new Exception("Can't locate loaded prefab OffsetGizmo");
 
-      Object = bundle.LoadAsset<GameObject>("Axes");
+      Material handleRendererMaterial(string name) {
+        if (!(offsetTool.GetChild(name) is GameObject handle))
+          throw new Exception($"No such object {name} in OffsetGizmo");
+        var renderer = handle.GetComponent<Renderer>();
+        if (renderer == null)
+          throw new Exception($"No renderer in {name} in OffsetGizmo");
+        return renderer.sharedMaterial;
+      }
 
-      var axes = Object.GetComponent<Axes>();
-      axes.AxisX.material = handleMaterial(offsetTool, "X");
-      axes.AxisY.material = handleMaterial(offsetTool, "Y");
-      axes.AxisZ.material = handleMaterial(offsetTool, "Z");
-
-      Object.AddComponent<AdjustmentTool>();
-    }
-
-    private static Material handleMaterial(GameObject tool, string name) {
-      var handle = tool.GetChild($"Handle {name}+");
-      if (handle == null)
-        throw new Exception("No such object Handle {name}+ in OffsetGizmo");
-
-      var renderer = handle.GetComponent<Renderer>();
-      if (renderer == null)
-        throw new Exception("No renderer in Handle {name}+ in OffsetGizmo");
-
-      return renderer.sharedMaterial;
+      var axes = bundle.LoadAsset<GameObject>("Axes").GetComponent<Axes>();
+      axes.AxisX.material = handleRendererMaterial("Handle X+");
+      axes.AxisY.material = handleRendererMaterial("Handle Y+");
+      axes.AxisZ.material = handleRendererMaterial("Handle Z+");
+      Template = axes.gameObject.AddComponent<AdjustmentTool>();
     }
   }
 }
