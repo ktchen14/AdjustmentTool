@@ -33,7 +33,7 @@ namespace AdjustmentTool {
     }
 
     private KFSMState st_adjust_select;
-    private KFSMState st_adjust_active;
+    public KFSMState st_adjust_active { get; private set; }
     private KFSMEvent on_goToModeAdjust;
     private KFSMEvent on_adjustSelect;
     private KFSMEvent on_adjustDeselect;
@@ -154,15 +154,5 @@ namespace AdjustmentTool {
     // Whether the part is adjustable (surface attached)
     private static bool isPartAdjustable(Part part)
       => part.srfAttachNode != null && part.srfAttachNode.attachedPart != null;
-
-    private static bool IsTextLocked(ControlTypes type = ControlTypes.None) {
-      if (InputLockManager.IsLocked(type))
-        return true;
-
-      var item = EventSystem.current.currentSelectedGameObject;
-      if (item == null)
-        return false;
-      return item.GetComponent<TMP_InputField>() != null;
-    }
   }
 }

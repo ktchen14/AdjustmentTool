@@ -24,7 +24,6 @@ namespace AdjustmentTool {
       st_adjust_active.OnLeave += st_offset_tweak.OnLeave;
       st_adjust_active.OnLeave += onAdjustExit;
       st_adjust_active.OnUpdate += st_offset_tweak.OnUpdate;
-      st_adjust_active.OnUpdate += divisionUpdate;
     }
 
     private void onAdjustEntrance(KFSMState from) {
@@ -60,18 +59,6 @@ namespace AdjustmentTool {
       GameEvents.onEditorPartEvent.Remove(OnPartOffset);
     }
 
-    private void divisionUpdate() {
-      if (!GameSettings.Editor_toggleSymMode.GetKeyDown())
-        return;
-
-      if (IsTextLocked(ControlTypes.EDITOR_SYM_SNAP_UI))
-        return;
-
-      if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
-        Division.Last();
-      else
-        Division.Next();
-    }
 
     private void onMove(Vector3 position) {
       var host = SelectedPart.GetReferenceTransform();
