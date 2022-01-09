@@ -1,13 +1,16 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using AdjustmentTool.UI;
 using EditorGizmos;
 using UnityEngine;
 
 namespace AdjustmentTool {
+  public delegate bool ToolReloader(AdjustmentTool tool);
+
   [SuppressMessage("ReSharper", "InconsistentNaming")]
   public partial class EditorHook {
+    public readonly List<ToolReloader> ReloaderList = new List<ToolReloader>();
+
     private GizmoOffset offsetTool;
 
     private delegate void UpdateSymmetryCall(Part selPart, int symMode,
@@ -17,6 +20,13 @@ namespace AdjustmentTool {
     private int symUpdateMode;
     private Part symUpdateParent;
     private AttachNode symUpdateAttachNode;
+
+    public void ReloadTool() {
+      var list = ReloaderList.AsEnumerable().Reverse();
+      if (list.Any(reloader => reloader(AdjustmentTool)))
+        return;
+      AdjustmentTool.Encase(SelectedPart.GetReferenceParent());
+    }
 
     private void InitializeAdjustActive() {
       st_adjust_active.OnEnter += st_offset_tweak.OnEnter;
@@ -39,26 +49,15 @@ namespace AdjustmentTool {
         SelectedPart.initRotation,
         onMove,
         onMoveStop);
-
-      partCollection.enabled = true;
-      partCollection.Change.AddListener(OnPartCollectionChange);
-      partCollection.IsSelectable = IsPartCollectionSelectable;
-
-      OnPartCollectionChange(partCollection);
+      ReloadTool();
 
       GameEvents.onEditorPartEvent.Add(OnPartOffset);
     }
 
     private void onAdjustExit(KFSMState to) {
       AdjustmentTool.Detach();
-
-      partCollection.enabled = false;
-      partCollection.Change.RemoveListener(OnPartCollectionChange);
-      partCollection.IsSelectable = null;
-
       GameEvents.onEditorPartEvent.Remove(OnPartOffset);
     }
-
 
     private void onMove(Vector3 position) {
       var host = SelectedPart.GetReferenceTransform();
@@ -86,13 +85,6 @@ namespace AdjustmentTool {
       GameEvents.onEditorPartEvent.Fire(ConstructionEventType.PartOffset,
         SelectedPart);
       GameEvents.onEditorPartEvent.Add(OnPartOffset);
-    }
-
-    private bool IsPartCollectionSelectable() => !AdjustmentTool.Held;
-
-    private void OnPartCollectionChange(ICollection<Part> collection) {
-      var list = collection.DefaultIfEmpty(SelectedPart.GetReferenceParent());
-      AdjustmentTool.Encase(list.ToArray());
     }
 
     // Revert the adjustment tool if the part is offset from an external source

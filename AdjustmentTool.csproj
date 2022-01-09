@@ -49,6 +49,7 @@
         <Compile Include="EditorHook\On_AdjustDeselect.cs" />
         <Compile Include="EditorHook\On_AdjustSelect.cs" />
         <Compile Include="EditorHook\On_GoToModeAdjust.cs" />
+        <Compile Include="EditorHook\PartCollectionSystem.cs" />
         <Compile Include="EditorSystem.cs" />
         <Compile Include="Injector.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />

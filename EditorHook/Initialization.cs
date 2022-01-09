@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
@@ -25,10 +26,14 @@ namespace AdjustmentTool {
         selector = ToolSelector.Initialize(bundle, GoToModeAdjust);
         hookEditor(editor);
 
-        gameObject.AddComponent<DivisionSystem>();
-
-        partCollection = gameObject.AddComponent<PartCollection>();
-        partCollection.enabled = false;
+        // Add each concrete subclass of EditorSystem as a component
+        Assembly.GetExecutingAssembly().GetTypes().Where(
+          type => type.IsSubclassOf(typeof(EditorSystem))
+        ).Where(
+          type => !type.IsAbstract && !type.IsGenericType
+        ).Where(
+          type => !gameObject.TryGetComponent(type, out _)
+        ).ToList().ForEach(type => gameObject.AddComponent(type));
       } catch (Exception e) {
         if (selector != null)
           Destroy(selector);

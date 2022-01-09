@@ -14,17 +14,11 @@ namespace AdjustmentTool {
     private void InitializeAdjustSelect() {
       st_adjust_select.OnEnter = OnAdjustSelectEntrance;
       st_adjust_select.OnUpdate = st_offset_select.OnUpdate;
-      st_adjust_select.OnLeave = OnAdjustSelectExit;
     }
 
     private void OnAdjustSelectEntrance(KFSMState from) {
-      partCollection.enabled = true;
       if (from != st_adjust_active)
         ScreenMessages.PostScreenMessage(HelpText, modeMsg);
-    }
-
-    private void OnAdjustSelectExit(KFSMState to) {
-      partCollection.enabled = false;
     }
   }
 }

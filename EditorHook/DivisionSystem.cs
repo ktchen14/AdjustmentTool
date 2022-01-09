@@ -3,8 +3,12 @@ using UnityEngine;
 
 namespace AdjustmentTool {
   public class DivisionSystem : EditorSystem {
-    private void Start() {
+    private void OnEnable() {
       EditorHook.st_adjust_active.OnUpdate += DivisionUpdate;
+    }
+
+    private void OnDisable() {
+      EditorHook.st_adjust_active.OnUpdate -= DivisionUpdate;
     }
 
     private void DivisionUpdate() {

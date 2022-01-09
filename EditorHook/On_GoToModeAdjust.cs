@@ -19,8 +19,6 @@ namespace AdjustmentTool {
         SelectedPart = null;
         on_goToModeAdjust.GoToStateOnEvent = st_adjust_select;
       }
-
-      partCollection.Clear();
     }
 
     private void GoToModeAdjust() => efsm.RunEvent(on_goToModeAdjust);

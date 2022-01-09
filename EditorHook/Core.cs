@@ -14,7 +14,6 @@ namespace AdjustmentTool {
     public AdjustmentTool AdjustmentTool { get; private set; }
 
     private EditorLogic editor;
-    private PartCollection partCollection;
 
     [RemoteMember("fsm")] private KerbalFSM efsm;
     private KFSMState st_offset_select;
@@ -32,12 +31,14 @@ namespace AdjustmentTool {
       set => selectedPartSetter(value);
     }
 
-    private KFSMState st_adjust_select;
+    public KFSMState st_adjust_select { get; private set; }
     public KFSMState st_adjust_active { get; private set; }
-    private KFSMEvent on_goToModeAdjust;
+    public KFSMEvent on_goToModeAdjust { get; private set; }
     private KFSMEvent on_adjustSelect;
     private KFSMEvent on_adjustDeselect;
     private KFSMEvent on_adjustRevert;
+
+    public KFSMState CurrentState => efsm.CurrentState;
 
     private void Awake() => editor = EditorLogic.fetch;
 
