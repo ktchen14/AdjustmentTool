@@ -8,9 +8,12 @@ namespace AdjustmentTool {
   public static class AdjustmentTool {
     public static Axes Template { get; private set; }
 
-    public static Axes Attach(Transform host, Quaternion rotation) {
-      return Object.Instantiate(Template, host.position, host.rotation * Quaternion.Inverse(rotation));
+    public static Axes Attach(Transform host) {
+      return Object.Instantiate(Template, host.position, Quaternion.identity);
     }
+
+    public static void Detach(this Axes axes) =>
+      Object.Destroy(axes.gameObject);
 
     public static void Encase(this Axes axes, params Part[] list)
       => axes.Encase(list.SelectMany(part => part.GetPartRenderers()));

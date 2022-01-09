@@ -14,6 +14,16 @@ namespace AdjustmentTool {
 
     private EditorLogic editor;
 
+    // We need a reference to the actual ScreenMessage instance here so that
+    // ScreenMessages.PostScreenMessage(...) will displace a redundant message.
+    // The on_goToModeAdjust transition is (almost?) always subsequent to a
+    // on_goToModeOffset transition. If we just duplicate the format of
+    // EditorLogic.modeMsg here, then both "Select an attached part to Offset"
+    // and "Select a surface attached part to Adjust" will appear as help text
+    // when the Adjust Tool is used.
+    [RemoteMember] private ScreenMessage modeMsg;
+    public ScreenMessage ModeMsg => modeMsg;
+
     [RemoteMember("fsm")] private KerbalFSM efsm;
     private KFSMState st_offset_select;
     private KFSMState st_offset_tweak;

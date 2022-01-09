@@ -43,6 +43,7 @@
         <Compile Include="AdjustmentTool.cs" />
         <Compile Include="EditorHook\AdjustSelect.cs" />
         <Compile Include="EditorHook\AdjustActive.cs" />
+        <Compile Include="EditorHook\AspectSystem.cs" />
         <Compile Include="EditorHook\Core.cs" />
         <Compile Include="EditorHook\DivisionSystem.cs" />
         <Compile Include="EditorHook\Initialization.cs" />

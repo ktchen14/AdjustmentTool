@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 
 namespace AdjustmentTool {
-  public class EditorSystem : MonoBehaviour {
+  public abstract class EditorSystem : MonoBehaviour {
     protected Part SelectedPart => EditorLogic.SelectedPart;
     protected Axes Tool => EditorHook.Tool;
     protected EditorLogic Editor { get; private set; }

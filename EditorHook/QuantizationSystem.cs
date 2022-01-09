@@ -1,25 +1,25 @@
 namespace AdjustmentTool {
   public class QuantizationSystem : EditorSystem {
     private void OnEnable() {
-      EditorHook.st_adjust_active.OnEnter += OnAdjustEntrance;
-      EditorHook.st_adjust_active.OnLeave += OnAdjustExit;
+      EditorHook.st_adjust_active.OnEnter += OnActiveEntrance;
+      EditorHook.st_adjust_active.OnLeave += OnActiveExit;
       if (EditorHook.CurrentState == EditorHook.st_adjust_active)
-        OnAdjustEntrance(null);
+        OnActiveEntrance(null);
     }
 
     private void OnDisable() {
-      EditorHook.st_adjust_active.OnEnter -= OnAdjustEntrance;
-      EditorHook.st_adjust_active.OnLeave -= OnAdjustExit;
+      EditorHook.st_adjust_active.OnEnter -= OnActiveEntrance;
+      EditorHook.st_adjust_active.OnLeave -= OnActiveExit;
       if (EditorHook.CurrentState == EditorHook.st_adjust_active)
-        OnAdjustExit(null);
+        OnActiveExit(null);
     }
 
-    private void OnAdjustEntrance(KFSMState _) {
+    private void OnActiveEntrance(KFSMState _) {
       GameEvents.onEditorSnapModeChange.Add(OnChange);
       Tool.Quantize = GameSettings.VAB_USE_ANGLE_SNAP;
     }
 
-    private void OnAdjustExit(KFSMState _) {
+    private void OnActiveExit(KFSMState _) {
       GameEvents.onEditorSnapModeChange.Remove(OnChange);
     }
 

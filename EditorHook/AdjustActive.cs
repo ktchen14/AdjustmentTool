@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -30,14 +31,16 @@ namespace AdjustmentTool {
     }
 
     private void InitializeAdjustActive() {
-      st_adjust_active.OnEnter += st_offset_tweak.OnEnter;
+      st_adjust_active.OnEnter = st_offset_tweak.OnEnter;
       st_adjust_active.OnEnter += onAdjustEntrance;
-      st_adjust_active.OnLeave += st_offset_tweak.OnLeave;
+      st_adjust_active.OnLeave = st_offset_tweak.OnLeave;
       st_adjust_active.OnLeave += onAdjustExit;
-      st_adjust_active.OnUpdate += st_offset_tweak.OnUpdate;
+      st_adjust_active.OnUpdate = st_offset_tweak.OnUpdate;
     }
 
     private void onAdjustEntrance(KFSMState from) {
+      editor.coordSpaceBtn.gameObject.SetActive(false);
+
       offsetTool = FindObjectOfType<GizmoOffset>();
       offsetTool.gameObject.SetActive(false);
 
@@ -45,16 +48,16 @@ namespace AdjustmentTool {
       symUpdateParent = SelectedPart.parent;
       symUpdateAttachNode = SelectedPart.FindAttachNodeByPart(symUpdateParent);
 
-      Tool = AdjustmentTool.Attach(SelectedPart.GetReferenceTransform(), SelectedPart.initRotation);
+      Tool = AdjustmentTool.Attach(SelectedPart.GetReferenceTransform());
       Tool.OnMove = onMove;
       Tool.OnMoveStop = onMoveStop;
-      ReloadTool();
+      StartCoroutine(LateReloadTool());
 
       GameEvents.onEditorPartEvent.Add(OnPartOffset);
     }
 
     private void onAdjustExit(KFSMState to) {
-      Destroy(Tool);
+      Tool.Detach();
       GameEvents.onEditorPartEvent.Remove(OnPartOffset);
     }
 
@@ -92,6 +95,11 @@ namespace AdjustmentTool {
       if (type != ConstructionEventType.PartOffset || part != SelectedPart)
         return;
       efsm.RunEvent(on_adjustRevert);
+    }
+
+    private IEnumerator LateReloadTool() {
+      yield return new WaitForEndOfFrame();
+      ReloadTool();
     }
   }
 }
