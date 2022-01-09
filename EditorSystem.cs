@@ -1,3 +1,4 @@
+using AdjustmentTool.UI;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -5,7 +6,7 @@ using UnityEngine.EventSystems;
 namespace AdjustmentTool {
   public class EditorSystem : MonoBehaviour {
     protected Part SelectedPart => EditorLogic.SelectedPart;
-    protected AdjustmentTool Tool => EditorHook.AdjustmentTool;
+    protected Axes Tool => EditorHook.Tool;
     protected EditorLogic Editor { get; private set; }
     protected EditorHook EditorHook { get; private set; }
 

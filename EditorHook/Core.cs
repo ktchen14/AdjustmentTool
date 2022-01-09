@@ -3,15 +3,14 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
-using TMPro;
+using AdjustmentTool.UI;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 namespace AdjustmentTool {
   [SuppressMessage("ReSharper", "InconsistentNaming")]
   [KSPAddon(KSPAddon.Startup.EditorVAB, false)]
   public partial class EditorHook : MonoBehaviour {
-    public AdjustmentTool AdjustmentTool { get; private set; }
+    public Axes Tool { get; private set; }
 
     private EditorLogic editor;
 

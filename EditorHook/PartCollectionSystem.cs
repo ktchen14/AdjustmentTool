@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using AdjustmentTool.UI;
 
 namespace AdjustmentTool {
   public class PartCollectionSystem : EditorSystem {
@@ -65,7 +66,7 @@ namespace AdjustmentTool {
 
     private void OnChange(ICollection<Part> _) => EditorHook.ReloadTool();
 
-    private bool ReloadTool(AdjustmentTool tool) {
+    private bool ReloadTool(Axes tool) {
       if (collection.Count == 0)
         return false;
 

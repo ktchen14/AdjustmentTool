@@ -1,11 +1,12 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using AdjustmentTool.UI;
 using EditorGizmos;
 using UnityEngine;
 
 namespace AdjustmentTool {
-  public delegate bool ToolReloader(AdjustmentTool tool);
+  public delegate bool ToolReloader(Axes tool);
 
   [SuppressMessage("ReSharper", "InconsistentNaming")]
   public partial class EditorHook {
@@ -23,9 +24,9 @@ namespace AdjustmentTool {
 
     public void ReloadTool() {
       var list = ReloaderList.AsEnumerable().Reverse();
-      if (list.Any(reloader => reloader(AdjustmentTool)))
+      if (list.Any(reloader => reloader(Tool)))
         return;
-      AdjustmentTool.Encase(SelectedPart.GetReferenceParent());
+      Tool.Encase(SelectedPart.GetReferenceParent());
     }
 
     private void InitializeAdjustActive() {
@@ -44,18 +45,16 @@ namespace AdjustmentTool {
       symUpdateParent = SelectedPart.parent;
       symUpdateAttachNode = SelectedPart.FindAttachNodeByPart(symUpdateParent);
 
-      AdjustmentTool = AdjustmentTool.Attach(
-        SelectedPart.GetReferenceTransform(),
-        SelectedPart.initRotation,
-        onMove,
-        onMoveStop);
+      Tool = AdjustmentTool.Attach(SelectedPart.GetReferenceTransform(), SelectedPart.initRotation);
+      Tool.OnMove = onMove;
+      Tool.OnMoveStop = onMoveStop;
       ReloadTool();
 
       GameEvents.onEditorPartEvent.Add(OnPartOffset);
     }
 
     private void onAdjustExit(KFSMState to) {
-      AdjustmentTool.Detach();
+      Destroy(Tool);
       GameEvents.onEditorPartEvent.Remove(OnPartOffset);
     }
 

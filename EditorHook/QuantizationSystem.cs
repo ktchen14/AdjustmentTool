@@ -16,13 +16,13 @@ namespace AdjustmentTool {
 
     private void OnAdjustEntrance(KFSMState _) {
       GameEvents.onEditorSnapModeChange.Add(OnChange);
-      Tool.Axes.Quantize = GameSettings.VAB_USE_ANGLE_SNAP;
+      Tool.Quantize = GameSettings.VAB_USE_ANGLE_SNAP;
     }
 
     private void OnAdjustExit(KFSMState _) {
       GameEvents.onEditorSnapModeChange.Remove(OnChange);
     }
 
-    private void OnChange(bool mode) => Tool.Axes.Quantize = mode;
+    private void OnChange(bool mode) => Tool.Quantize = mode;
   }
 }
