@@ -16,11 +16,7 @@ namespace AdjustmentTool {
     public readonly PartCollectionChange Change = new PartCollectionChange();
 
     // Used to stop part selection when the cursor is over the adjustment tool
-    private IsSelectable isSelectable;
-    public IsSelectable IsSelectable {
-      get => isSelectable;
-      set => isSelectable = value ?? (() => true);
-    }
+    public IsSelectable IsSelectable;
 
     private readonly ICollection<Part> partList = new HashSet<Part>();
 
@@ -91,7 +87,9 @@ namespace AdjustmentTool {
     private void Update() {
       if (!Input.GetKey(KeyCode.LeftShift) || !Input.GetMouseButtonDown(0))
         return;
-      if (EventSystem.current.IsPointerOverGameObject() || !IsSelectable())
+      if (IsSelectable != null && !IsSelectable())
+        return;
+      if (EventSystem.current.IsPointerOverGameObject())
         return;
 
       if (OverPart() is var overPart && overPart == null)
